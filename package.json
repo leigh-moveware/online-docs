@@ -13,8 +13,7 @@
   "dependencies": {
     "next": "16.1.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@moveconnect/sdk": "1.0.79"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
