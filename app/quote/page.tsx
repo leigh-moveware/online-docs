@@ -628,7 +628,7 @@ function QuotePageContent() {
             <div className="bg-white rounded-lg shadow mb-6">
               <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 className="text-xl font-bold text-gray-900">Complete Inventory</h3>
-                <div className="flex items-center gap-3">
+                <div className="no-print flex items-center gap-3">
                   <span className="text-sm text-gray-600">Show:</span>
                   <select
                     value={itemsPerPage}
@@ -687,7 +687,7 @@ function QuotePageContent() {
               
               {/* Pagination Controls */}
               {itemsPerPage !== -1 && totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+                <div className="no-print px-6 py-4 border-t border-gray-200 flex justify-between items-center">
                   <div className="text-sm text-gray-600">
                     Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, inventory.length)} of {inventory.length} items
                   </div>
