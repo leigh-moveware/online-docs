@@ -1,620 +1,350 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { useState, useRef } from 'react';
 import SignatureCanvas from './signature-canvas';
+import { CreateQuoteRequest, CreateQuoteResponse } from '@/lib/types/quote';
 
-interface QuoteFormData {
-  // Customer Information
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  
-  // Move Details
-  moveDate: string;
-  moveType: 'local' | 'longDistance' | 'international' | '';
-  fromAddress: string;
-  fromCity: string;
-  fromState: string;
-  fromZip: string;
-  toAddress: string;
-  toCity: string;
-  toState: string;
-  toZip: string;
-  
-  // Property Details
-  propertyType: 'house' | 'apartment' | 'condo' | 'storage' | '';
-  bedrooms: string;
-  additionalInfo: string;
-  
-  // Agreement
-  agreeToTerms: boolean;
-  signature: string;
+interface QuoteFormProps {
+  onSuccess?: () => void;
 }
 
-interface FormErrors {
-  [key: string]: string;
-}
-
-export default function QuoteForm() {
-  const [formData, setFormData] = useState<QuoteFormData>({
-    firstName: '',
-    lastName: '',
+export default function QuoteForm({ onSuccess }: QuoteFormProps) {
+  const [formData, setFormData] = useState({
+    customerName: '',
     email: '',
     phone: '',
+    address: '',
+    serviceType: '',
     moveDate: '',
-    moveType: '',
-    fromAddress: '',
-    fromCity: '',
-    fromState: '',
-    fromZip: '',
-    toAddress: '',
-    toCity: '',
-    toState: '',
-    toZip: '',
-    propertyType: '',
-    bedrooms: '',
-    additionalInfo: '',
-    agreeToTerms: false,
-    signature: '',
+    details: '',
+    typedName: '',
+    acceptedTerms: false,
   });
-
-  const [errors, setErrors] = useState<FormErrors>({});
+  
+  const [signatureData, setSignatureData] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState(false);
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Customer Information
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^[\d\s\-\(\)\+]+$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
-    }
-
-    // Move Details
-    if (!formData.moveDate) {
-      newErrors.moveDate = 'Move date is required';
-    }
-    if (!formData.moveType) {
-      newErrors.moveType = 'Move type is required';
-    }
-    if (!formData.fromAddress.trim()) {
-      newErrors.fromAddress = 'From address is required';
-    }
-    if (!formData.fromCity.trim()) {
-      newErrors.fromCity = 'From city is required';
-    }
-    if (!formData.fromState.trim()) {
-      newErrors.fromState = 'From state is required';
-    }
-    if (!formData.fromZip.trim()) {
-      newErrors.fromZip = 'From ZIP code is required';
-    }
-    if (!formData.toAddress.trim()) {
-      newErrors.toAddress = 'To address is required';
-    }
-    if (!formData.toCity.trim()) {
-      newErrors.toCity = 'To city is required';
-    }
-    if (!formData.toState.trim()) {
-      newErrors.toState = 'To state is required';
-    }
-    if (!formData.toZip.trim()) {
-      newErrors.toZip = 'To ZIP code is required';
-    }
-
-    // Property Details
-    if (!formData.propertyType) {
-      newErrors.propertyType = 'Property type is required';
-    }
-    if (!formData.bedrooms.trim()) {
-      newErrors.bedrooms = 'Number of bedrooms is required';
-    }
-
-    // Agreement
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
-    }
-    if (!formData.signature) {
-      newErrors.signature = 'Signature is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof QuoteFormData, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: '' }));
-    }
+  const handleSignatureChange = (signature: string) => {
+    setSignatureData(signature);
+  };
+
+  const validateForm = (): string | null => {
+    if (!formData.customerName.trim()) return 'Customer name is required';
+    if (!formData.email.trim()) return 'Email is required';
+    if (!formData.phone.trim()) return 'Phone number is required';
+    if (!formData.serviceType) return 'Service type is required';
+    if (!formData.typedName.trim()) return 'Typed name is required';
+    if (!signatureData) return 'Signature is required';
+    if (!formData.acceptedTerms) return 'You must accept the terms and conditions';
+    
+    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setSuccess(false);
 
-    if (!validateForm()) {
-      // Scroll to first error
-      const firstError = Object.keys(errors)[0];
-      const errorElement = document.getElementById(firstError);
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+    // Validate form
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const requestData: CreateQuoteRequest = {
+        customerName: formData.customerName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address || undefined,
+        serviceType: formData.serviceType,
+        moveDate: formData.moveDate || undefined,
+        details: formData.details || undefined,
+        signatureData,
+        typedName: formData.typedName,
+        acceptedTerms: formData.acceptedTerms,
+      };
+
       const response = await fetch('/api/quotes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit quote request');
+      const result: CreateQuoteResponse = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to submit quote');
       }
 
-      setIsSubmitted(true);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      setErrors({ submit: 'Failed to submit quote request. Please try again.' });
+      setSuccess(true);
+      
+      // Reset form
+      setFormData({
+        customerName: '',
+        email: '',
+        phone: '',
+        address: '',
+        serviceType: '',
+        moveDate: '',
+        details: '',
+        typedName: '',
+        acceptedTerms: false,
+      });
+      setSignatureData('');
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit quote. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isSubmitted) {
-    return (
-      <div className="bg-white rounded-xl shadow-lg p-8 md:p-12">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Quote Request Submitted!</h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Thank you for your quote request. We'll review your information and get back to you within 24 hours.
-          </p>
-          <button
-            onClick={() => {
-              setIsSubmitted(false);
-              setFormData({
-                firstName: '',
-                lastName: '',
-                email: '',
-                phone: '',
-                moveDate: '',
-                moveType: '',
-                fromAddress: '',
-                fromCity: '',
-                fromState: '',
-                fromZip: '',
-                toAddress: '',
-                toCity: '',
-                toState: '',
-                toZip: '',
-                propertyType: '',
-                bedrooms: '',
-                additionalInfo: '',
-                agreeToTerms: false,
-                signature: '',
-              });
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            Submit Another Quote
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 md:p-12 space-y-10">
-      {/* Customer Information Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div id="firstName" className="space-y-2">
-            <label htmlFor="firstName-input" className="block text-sm font-medium text-gray-700">
-              First Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="firstName-input"
-              type="text"
-              value={formData.firstName}
-              onChange={(e) => handleInputChange('firstName', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="John"
-            />
-            {errors.firstName && <p className="text-sm text-red-600">{errors.firstName}</p>}
-          </div>
-
-          <div id="lastName" className="space-y-2">
-            <label htmlFor="lastName-input" className="block text-sm font-medium text-gray-700">
-              Last Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="lastName-input"
-              type="text"
-              value={formData.lastName}
-              onChange={(e) => handleInputChange('lastName', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="Doe"
-            />
-            {errors.lastName && <p className="text-sm text-red-600">{errors.lastName}</p>}
-          </div>
-
-          <div id="email" className="space-y-2">
-            <label htmlFor="email-input" className="block text-sm font-medium text-gray-700">
-              Email Address <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="email-input"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="john.doe@example.com"
-            />
-            {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
-          </div>
-
-          <div id="phone" className="space-y-2">
-            <label htmlFor="phone-input" className="block text-sm font-medium text-gray-700">
-              Phone Number <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="phone-input"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="(555) 123-4567"
-            />
-            {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Success Message */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-green-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-green-800">Quote Submitted Successfully</h3>
+              <p className="text-sm text-green-700 mt-1">We'll get back to you shortly with your personalized quote.</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Move Details Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Move Details</h2>
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div id="moveDate" className="space-y-2">
-              <label htmlFor="moveDate-input" className="block text-sm font-medium text-gray-700">
-                Preferred Move Date <span className="text-red-500">*</span>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form Fields */}
+      <div className="bg-white rounded-lg shadow-md p-8 space-y-6">
+        {/* Customer Information */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 border-b pb-2">Customer Information</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
-                id="moveDate-input"
-                type="date"
-                value={formData.moveDate}
-                onChange={(e) => handleInputChange('moveDate', e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                  errors.moveDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
+                type="text"
+                id="customerName"
+                name="customerName"
+                value={formData.customerName}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                placeholder="John Doe"
+                required
               />
-              {errors.moveDate && <p className="text-sm text-red-600">{errors.moveDate}</p>}
             </div>
 
-            <div id="moveType" className="space-y-2">
-              <label htmlFor="moveType-input" className="block text-sm font-medium text-gray-700">
-                Move Type <span className="text-red-500">*</span>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                placeholder="john@example.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                placeholder="(555) 123-4567"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                Address
+              </label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                placeholder="123 Main St, City, State"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Service Details */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 border-b pb-2">Service Details</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="serviceType" className="block text-sm font-medium text-gray-700 mb-1">
+                Service Type <span className="text-red-500">*</span>
               </label>
               <select
-                id="moveType-input"
-                value={formData.moveType}
-                onChange={(e) => handleInputChange('moveType', e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                  errors.moveType ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
+                id="serviceType"
+                name="serviceType"
+                value={formData.serviceType}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                required
               >
-                <option value="">Select move type</option>
-                <option value="local">Local (within 50 miles)</option>
-                <option value="longDistance">Long Distance (50+ miles)</option>
-                <option value="international">International</option>
+                <option value="">Select a service</option>
+                <option value="residential">Residential Moving</option>
+                <option value="commercial">Commercial Moving</option>
+                <option value="packing">Packing Services</option>
+                <option value="storage">Storage Solutions</option>
+                <option value="specialty">Specialty Items</option>
               </select>
-              {errors.moveType && <p className="text-sm text-red-600">{errors.moveType}</p>}
             </div>
-          </div>
 
-          {/* From Address */}
-          <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Moving From</h3>
-            <div id="fromAddress" className="space-y-2">
-              <label htmlFor="fromAddress-input" className="block text-sm font-medium text-gray-700">
-                Street Address <span className="text-red-500">*</span>
+            <div>
+              <label htmlFor="moveDate" className="block text-sm font-medium text-gray-700 mb-1">
+                Preferred Move Date
               </label>
               <input
-                id="fromAddress-input"
-                type="text"
-                value={formData.fromAddress}
-                onChange={(e) => handleInputChange('fromAddress', e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                  errors.fromAddress ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                }`}
-                placeholder="123 Main St"
+                type="date"
+                id="moveDate"
+                name="moveDate"
+                value={formData.moveDate}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
-              {errors.fromAddress && <p className="text-sm text-red-600">{errors.fromAddress}</p>}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div id="fromCity" className="space-y-2">
-                <label htmlFor="fromCity-input" className="block text-sm font-medium text-gray-700">
-                  City <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="fromCity-input"
-                  type="text"
-                  value={formData.fromCity}
-                  onChange={(e) => handleInputChange('fromCity', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.fromCity ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                  }`}
-                  placeholder="New York"
-                />
-                {errors.fromCity && <p className="text-sm text-red-600">{errors.fromCity}</p>}
-              </div>
-              <div id="fromState" className="space-y-2">
-                <label htmlFor="fromState-input" className="block text-sm font-medium text-gray-700">
-                  State <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="fromState-input"
-                  type="text"
-                  value={formData.fromState}
-                  onChange={(e) => handleInputChange('fromState', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.fromState ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                  }`}
-                  placeholder="NY"
-                  maxLength={2}
-                />
-                {errors.fromState && <p className="text-sm text-red-600">{errors.fromState}</p>}
-              </div>
-              <div id="fromZip" className="space-y-2">
-                <label htmlFor="fromZip-input" className="block text-sm font-medium text-gray-700">
-                  ZIP Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="fromZip-input"
-                  type="text"
-                  value={formData.fromZip}
-                  onChange={(e) => handleInputChange('fromZip', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.fromZip ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                  }`}
-                  placeholder="10001"
-                  maxLength={10}
-                />
-                {errors.fromZip && <p className="text-sm text-red-600">{errors.fromZip}</p>}
-              </div>
             </div>
           </div>
 
-          {/* To Address */}
-          <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Moving To</h3>
-            <div id="toAddress" className="space-y-2">
-              <label htmlFor="toAddress-input" className="block text-sm font-medium text-gray-700">
-                Street Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="toAddress-input"
-                type="text"
-                value={formData.toAddress}
-                onChange={(e) => handleInputChange('toAddress', e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                  errors.toAddress ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                }`}
-                placeholder="456 Oak Ave"
-              />
-              {errors.toAddress && <p className="text-sm text-red-600">{errors.toAddress}</p>}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div id="toCity" className="space-y-2">
-                <label htmlFor="toCity-input" className="block text-sm font-medium text-gray-700">
-                  City <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="toCity-input"
-                  type="text"
-                  value={formData.toCity}
-                  onChange={(e) => handleInputChange('toCity', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.toCity ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                  }`}
-                  placeholder="Los Angeles"
-                />
-                {errors.toCity && <p className="text-sm text-red-600">{errors.toCity}</p>}
-              </div>
-              <div id="toState" className="space-y-2">
-                <label htmlFor="toState-input" className="block text-sm font-medium text-gray-700">
-                  State <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="toState-input"
-                  type="text"
-                  value={formData.toState}
-                  onChange={(e) => handleInputChange('toState', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.toState ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                  }`}
-                  placeholder="CA"
-                  maxLength={2}
-                />
-                {errors.toState && <p className="text-sm text-red-600">{errors.toState}</p>}
-              </div>
-              <div id="toZip" className="space-y-2">
-                <label htmlFor="toZip-input" className="block text-sm font-medium text-gray-700">
-                  ZIP Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="toZip-input"
-                  type="text"
-                  value={formData.toZip}
-                  onChange={(e) => handleInputChange('toZip', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.toZip ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                  }`}
-                  placeholder="90001"
-                  maxLength={10}
-                />
-                {errors.toZip && <p className="text-sm text-red-600">{errors.toZip}</p>}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Property Details Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Property Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div id="propertyType" className="space-y-2">
-            <label htmlFor="propertyType-input" className="block text-sm font-medium text-gray-700">
-              Property Type <span className="text-red-500">*</span>
+          <div>
+            <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">
+              Additional Details
             </label>
-            <select
-              id="propertyType-input"
-              value={formData.propertyType}
-              onChange={(e) => handleInputChange('propertyType', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.propertyType ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select property type</option>
-              <option value="house">House</option>
-              <option value="apartment">Apartment</option>
-              <option value="condo">Condo</option>
-              <option value="storage">Storage Unit</option>
-            </select>
-            {errors.propertyType && <p className="text-sm text-red-600">{errors.propertyType}</p>}
-          </div>
-
-          <div id="bedrooms" className="space-y-2">
-            <label htmlFor="bedrooms-input" className="block text-sm font-medium text-gray-700">
-              Number of Bedrooms <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="bedrooms-input"
-              value={formData.bedrooms}
-              onChange={(e) => handleInputChange('bedrooms', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                errors.bedrooms ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select number</option>
-              <option value="studio">Studio</option>
-              <option value="1">1 Bedroom</option>
-              <option value="2">2 Bedrooms</option>
-              <option value="3">3 Bedrooms</option>
-              <option value="4">4 Bedrooms</option>
-              <option value="5+">5+ Bedrooms</option>
-            </select>
-            {errors.bedrooms && <p className="text-sm text-red-600">{errors.bedrooms}</p>}
+            <textarea
+              id="details"
+              name="details"
+              value={formData.details}
+              onChange={handleInputChange}
+              rows={4}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+              placeholder="Please provide any additional information about your move..."
+            />
           </div>
         </div>
 
-        <div className="mt-6 space-y-2">
-          <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700">
-            Additional Information
-          </label>
-          <textarea
-            id="additionalInfo"
-            value={formData.additionalInfo}
-            onChange={(e) => handleInputChange('additionalInfo', e.target.value)}
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            placeholder="Any special items, access restrictions, or additional details..."
-          />
-          <p className="text-xs text-gray-500">Optional: Let us know about any special requirements</p>
-        </div>
-      </div>
-
-      {/* Signature Section */}
-      <div id="signature">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Agreement and Signature</h2>
-        <div className="space-y-6">
-          <div id="agreeToTerms" className="space-y-2">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.agreeToTerms}
-                onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
-                className={`mt-1 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 ${
-                  errors.agreeToTerms ? 'border-red-300' : ''
-                }`}
-              />
-              <span className="text-sm text-gray-700">
-                I agree to the terms and conditions and authorize Moveware to contact me regarding my move quote request. I understand that this is not a binding quote and final pricing will be determined after an in-person or virtual assessment. <span className="text-red-500">*</span>
-              </span>
+        {/* Signature Section */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-900 border-b pb-2">Signature & Agreement</h2>
+          
+          <div>
+            <label htmlFor="typedName" className="block text-sm font-medium text-gray-700 mb-1">
+              Type Your Full Name <span className="text-red-500">*</span>
             </label>
-            {errors.agreeToTerms && <p className="text-sm text-red-600 ml-8">{errors.agreeToTerms}</p>}
+            <input
+              type="text"
+              id="typedName"
+              name="typedName"
+              value={formData.typedName}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              placeholder="John Doe"
+              required
+            />
           </div>
 
           <SignatureCanvas
-            value={formData.signature}
-            onChange={(signature) => handleInputChange('signature', signature)}
-            error={errors.signature}
+            value={signatureData}
+            onChange={handleSignatureChange}
           />
+
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="acceptedTerms"
+              name="acceptedTerms"
+              checked={formData.acceptedTerms}
+              onChange={handleInputChange}
+              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              required
+            />
+            <label htmlFor="acceptedTerms" className="ml-3 text-sm text-gray-700">
+              I agree to the terms and conditions and authorize Moveware to contact me regarding this quote request. <span className="text-red-500">*</span>
+            </label>
+          </div>
         </div>
       </div>
 
-      {/* Submit Section */}
-      <div className="pt-6 border-t border-gray-200">
-        {errors.submit && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-600">{errors.submit}</p>
-          </div>
-        )}
-        
+      {/* Submit Button */}
+      <div className="flex justify-end">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
-            <>
-              <Loader2 className="w-6 h-6 animate-spin" />
-              Submitting Request...
-            </>
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Submitting...
+            </span>
           ) : (
-            <>
-              Submit Quote Request
-              <ArrowRight className="w-6 h-6" />
-            </>
+            'Submit Quote Request'
           )}
         </button>
-        
-        <p className="text-center text-sm text-gray-600 mt-4">
-          All fields marked with <span className="text-red-500">*</span> are required
-        </p>
       </div>
     </form>
   );
