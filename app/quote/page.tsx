@@ -94,6 +94,7 @@ function QuotePageContent() {
   const [selectedCostingId, setSelectedCostingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [animateSteps, setAnimateSteps] = useState(false);
   
   // Validation states
   const [errors, setErrors] = useState({
@@ -114,6 +115,31 @@ function QuotePageContent() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Intersection Observer for steps animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !animateSteps) {
+            setAnimateSteps(true);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    const stepsSection = document.getElementById('next-steps-section');
+    if (stepsSection) {
+      observer.observe(stepsSection);
+    }
+
+    return () => {
+      if (stepsSection) {
+        observer.unobserve(stepsSection);
+      }
+    };
+  }, [animateSteps]);
 
   useEffect(() => {
     if (jobId && companyId) {
@@ -591,7 +617,7 @@ function QuotePageContent() {
           )}
 
           {/* Next Steps Section */}
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div id="next-steps-section" className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Next Steps</h2>
             
             <style jsx global>{`
@@ -615,24 +641,35 @@ function QuotePageContent() {
                 }
               }
 
-              .step-1 {
+              .step-1.animate {
                 animation: fadeInUp 0.6s ease-out 0.2s both;
               }
 
-              .line-1 {
+              .line-1.animate {
                 animation: drawLine 0.8s ease-out 0.8s both;
               }
 
-              .step-2 {
+              .step-2.animate {
                 animation: fadeInUp 0.6s ease-out 1.6s both;
               }
 
-              .line-2 {
+              .line-2.animate {
                 animation: drawLine 0.8s ease-out 2.2s both;
               }
 
-              .step-3 {
+              .step-3.animate {
                 animation: fadeInUp 0.6s ease-out 3s both;
+              }
+
+              .step-1:not(.animate),
+              .step-2:not(.animate),
+              .step-3:not(.animate) {
+                opacity: 0;
+              }
+
+              .line-1:not(.animate),
+              .line-2:not(.animate) {
+                width: 0;
               }
 
               /* Custom DatePicker Styling */
@@ -691,7 +728,7 @@ function QuotePageContent() {
             {/* Horizontal Steps Indicator */}
             <div className="flex items-start justify-between mb-6 relative">
               {/* Step 1 */}
-              <div className="text-center flex-1 step-1">
+              <div className={`text-center flex-1 step-1 ${animateSteps ? 'animate' : ''}`}>
                 <div className="w-12 h-12 rounded-full text-white flex items-center justify-center text-xl font-bold mx-auto mb-3 relative z-10" style={{ backgroundColor: primaryColor }}>
                   1
                 </div>
@@ -701,11 +738,11 @@ function QuotePageContent() {
 
               {/* Line 1 to 2 */}
               <div className="flex items-center justify-center" style={{ width: '100px', marginTop: '24px' }}>
-                <div className="h-1 line-1" style={{ backgroundColor: primaryColor, width: 0 }}></div>
+                <div className={`h-1 line-1 ${animateSteps ? 'animate' : ''}`} style={{ backgroundColor: primaryColor, width: 0 }}></div>
               </div>
 
               {/* Step 2 */}
-              <div className="text-center flex-1 step-2">
+              <div className={`text-center flex-1 step-2 ${animateSteps ? 'animate' : ''}`}>
                 <div className="w-12 h-12 rounded-full text-white flex items-center justify-center text-xl font-bold mx-auto mb-3 relative z-10" style={{ backgroundColor: primaryColor }}>
                   2
                 </div>
@@ -715,11 +752,11 @@ function QuotePageContent() {
 
               {/* Line 2 to 3 */}
               <div className="flex items-center justify-center" style={{ width: '100px', marginTop: '24px' }}>
-                <div className="h-1 line-2" style={{ backgroundColor: primaryColor, width: 0 }}></div>
+                <div className={`h-1 line-2 ${animateSteps ? 'animate' : ''}`} style={{ backgroundColor: primaryColor, width: 0 }}></div>
               </div>
 
               {/* Step 3 */}
-              <div className="text-center flex-1 step-3">
+              <div className={`text-center flex-1 step-3 ${animateSteps ? 'animate' : ''}`}>
                 <div className="w-12 h-12 rounded-full text-white flex items-center justify-center text-xl font-bold mx-auto mb-3 relative z-10" style={{ backgroundColor: primaryColor }}>
                   3
                 </div>
