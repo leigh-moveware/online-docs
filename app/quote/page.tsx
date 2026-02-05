@@ -93,6 +93,7 @@ function QuotePageContent() {
   const [showDetailsIndex, setShowDetailsIndex] = useState<number | null>(null);
   const [selectedCostingId, setSelectedCostingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   
   // Validation states
   const [errors, setErrors] = useState({
@@ -103,6 +104,16 @@ function QuotePageContent() {
     signature: '',
     selectedCosting: '',
   });
+
+  // Handle scroll for back-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (jobId && companyId) {
@@ -914,6 +925,20 @@ function QuotePageContent() {
           </div>
 
         </div>
+
+        {/* Back to Top Button */}
+        {showBackToTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-8 right-8 w-12 h-12 rounded-full text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110"
+            style={{ backgroundColor: primaryColor }}
+            aria-label="Back to top"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          </button>
+        )}
       </div>
     </PageShell>
   );
