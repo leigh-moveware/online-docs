@@ -494,6 +494,37 @@ function QuotePageContent() {
         {/* Content Container */}
         <div className="max-w-6xl mx-auto px-8 py-8">
           
+          {/* Introduction Section */}
+          <div className="bg-white rounded-lg shadow p-8 mb-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-6">
+              Quotation Number: {job.id}
+            </h3>
+            <div className="space-y-4 text-gray-700 leading-relaxed">
+              <p>Dear {job.titleName} {job.lastName},</p>
+              
+              <p>
+                Thank you for contacting us for your upcoming move. Below you will find our pricing, 
+                tailored to meet your specific moving requirements.
+              </p>
+              
+              <p>
+                Please note this quotation is valid for 28 days from the quotation date.
+              </p>
+              
+              <p>
+                To confirm a booking with us, simply select the pricing option that you prefer and 
+                accept after filling in all information we need. And of course, should you have any 
+                questions about this quote, please do not hesitate to contact us.
+              </p>
+              
+              <p>We look forward to being at your service.</p>
+              
+              <p className="font-semibold mt-6">
+                {companyName} Admin
+              </p>
+            </div>
+          </div>
+          
           {/* Location Information */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Location Information</h3>
