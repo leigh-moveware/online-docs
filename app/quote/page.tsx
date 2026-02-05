@@ -947,15 +947,26 @@ function QuotePageContent() {
                 width: 8px;
                 height: 8px;
                 top: 50%;
-                transform: translateY(-50%);
               }
 
               .react-datepicker__navigation--previous {
                 left: 0.75rem;
               }
 
+              .react-datepicker__navigation--previous .react-datepicker__navigation-icon::before {
+                transform: translateY(-50%) rotate(-135deg);
+                left: 50%;
+                margin-left: 2px;
+              }
+
               .react-datepicker__navigation--next {
                 right: 0.75rem;
+              }
+
+              .react-datepicker__navigation--next .react-datepicker__navigation-icon::before {
+                transform: translateY(-50%) rotate(45deg);
+                right: 50%;
+                margin-right: 2px;
               }
 
               .react-datepicker__month-container {
