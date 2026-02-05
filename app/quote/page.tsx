@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageShell } from '@/lib/components/layout';
 import { Loader2, AlertCircle } from 'lucide-react';
 import SignatureCanvas from '@/lib/components/forms/signature-canvas';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import html2pdf from 'html2pdf.js';
 
 interface Job {
   id: number;
@@ -95,6 +96,10 @@ function QuotePageContent() {
   const [submitting, setSubmitting] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [animateSteps, setAnimateSteps] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  
+  // Ref for PDF content
+  const pdfContentRef = useRef<HTMLDivElement>(null);
   
   // Validation states
   const [errors, setErrors] = useState({
@@ -264,6 +269,35 @@ function QuotePageContent() {
            agreedToTerms;
   };
 
+  const generatePDF = async () => {
+    if (!pdfContentRef.current || !job) return;
+
+    try {
+      setGeneratingPdf(true);
+
+      const customerName = `${job.titleName || ''} ${job.firstName || ''} ${job.lastName || ''}`.trim();
+      const companyName = job.branding?.companyName || 'MOVEWARE';
+      
+      // PDF options
+      const opt = {
+        margin: 10,
+        filename: `Quote-${job.id}-${customerName.replace(/\s+/g, '-')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Generate PDF from the content
+      await html2pdf().set(opt).from(pdfContentRef.current).save();
+      
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      setError('Failed to generate PDF. Please try again.');
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   const handleAcceptQuote = async () => {
     if (!validateForm()) {
       return;
@@ -367,7 +401,7 @@ function QuotePageContent() {
 
   return (
     <PageShell includeHeader={false}>
-      <div className="min-h-screen bg-gray-50">
+      <div ref={pdfContentRef} className="min-h-screen bg-gray-50">
         {/* Quote Header with Logo and Banner */}
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-8 py-6">
@@ -928,15 +962,24 @@ function QuotePageContent() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
+            <div className="flex gap-4 no-print">
               <button className="flex-1 px-6 py-3 bg-gray-300 text-gray-700 font-semibold rounded hover:bg-gray-400 transition-colors">
                 Decline
               </button>
               <button 
-                style={{ backgroundColor: primaryColor }}
-                className="flex-1 px-6 py-3 text-white font-semibold rounded hover:opacity-90 transition-opacity"
+                onClick={generatePDF}
+                disabled={generatingPdf}
+                style={{ backgroundColor: generatingPdf ? '#e5e7eb' : primaryColor }}
+                className="flex-1 px-6 py-3 text-white font-semibold rounded hover:opacity-90 transition-opacity disabled:cursor-not-allowed"
               >
-                Create PDF
+                {generatingPdf ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </span>
+                ) : (
+                  'Create PDF'
+                )}
               </button>
               <button 
                 onClick={handleAcceptQuote}
@@ -967,7 +1010,7 @@ function QuotePageContent() {
         {showBackToTop && (
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-8 right-8 w-12 h-12 rounded-full text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110"
+            className="no-print fixed bottom-8 right-8 w-12 h-12 rounded-full text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110"
             style={{ backgroundColor: primaryColor }}
             aria-label="Back to top"
           >

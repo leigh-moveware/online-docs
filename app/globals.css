@@ -57,3 +57,18 @@
     @apply bg-white text-gray-900;
   }
 }
+
+/* PDF-friendly styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+  }
+  
+  .pdf-page-break {
+    page-break-before: always;
+  }
+}
