@@ -196,6 +196,17 @@ function QuotePageContent() {
   const primaryColor = job.branding?.primaryColor || '#1E40AF';
   const totalCube = inventory.reduce((sum, item) => sum + (item.cube || 0), 0);
 
+  // Format date to DD/MM/YYYY (Australian format)
+  const formatDate = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const quoteDate = formatDate(new Date());
+  const expiryDate = formatDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+
   return (
     <PageShell includeHeader={false}>
       <div className="min-h-screen bg-gray-50">
@@ -219,8 +230,8 @@ function QuotePageContent() {
                 <div className="mt-4 space-y-1 text-sm text-gray-600">
                   <p><span className="font-medium">Prepared For:</span> {customerName}</p>
                   <p><span className="font-medium">Reference:</span> #{job.id}</p>
-                  <p><span className="font-medium">Quote Date:</span> {new Date().toLocaleDateString()}</p>
-                  <p><span className="font-medium">Expiry Date:</span> {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
+                  <p><span className="font-medium">Quote Date:</span> {quoteDate}</p>
+                  <p><span className="font-medium">Expiry Date:</span> {expiryDate}</p>
                 </div>
               </div>
 
