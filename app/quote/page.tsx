@@ -280,8 +280,17 @@ function QuotePageContent() {
   const generatePDF = async () => {
     if (!pdfContentRef.current || !job) return;
 
+    // Save current pagination settings
+    const previousItemsPerPage = itemsPerPage;
+    
     try {
       setGeneratingPdf(true);
+
+      // Temporarily show all items for PDF generation
+      setItemsPerPage(-1);
+      
+      // Wait for DOM to update
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Dynamically import html2pdf to avoid SSR issues
       const html2pdf = (await import('html2pdf.js')).default;
@@ -305,6 +314,8 @@ function QuotePageContent() {
       console.error('Error generating PDF:', err);
       setError('Failed to generate PDF. Please try again.');
     } finally {
+      // Restore previous pagination settings
+      setItemsPerPage(previousItemsPerPage);
       setGeneratingPdf(false);
     }
   };
