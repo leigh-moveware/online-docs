@@ -11,16 +11,21 @@ datasource db {
 }
 
 model Branding {
-  id            String   @id @default(cuid())
-  companyId     String   @unique
-  logoUrl       String?
-  primaryColor  String?
+  id             String   @id @default(cuid())
+  companyId      String   @unique
+  brandCode      String?  @unique
+  logoUrl        String?
+  primaryColor   String?
   secondaryColor String?
-  fontFamily    String?
-  companyName   String?
-  favicon       String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  fontFamily     String?
+  companyName    String?
+  favicon        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  jobs           Job[]    @relation("BrandingJobs")
+  
+  @@index([brandCode])
 }
 
 model Hero {
@@ -64,4 +69,108 @@ model Quote {
   @@index([email])
   @@index([status])
   @@index([createdAt])
+}
+
+model Job {
+  id                        Int      @id
+  titleName                 String?
+  firstName                 String?
+  lastName                  String?
+  estimatedDeliveryDetails  String?
+  jobValue                  Float?
+  dateModified              DateTime?
+  brandCode                 String?
+  branchCode                String?
+  companyCode               String?
+  
+  // Measures stored as JSON
+  measuresVolumeGrossF3     Float?
+  measuresVolumeGrossM3     Float?
+  measuresVolumeNetF3       Float?
+  measuresVolumeNetM3       Float?
+  measuresWeightGrossKg     Float?
+  measuresWeightGrossLb     Float?
+  measuresWeightNetKg       Float?
+  measuresWeightNetLb       Float?
+  
+  // Uplift Address
+  upliftLine1               String?
+  upliftLine2               String?
+  upliftCity                String?
+  upliftState               String?
+  upliftPostcode            String?
+  upliftCountry             String?
+  
+  // Delivery Address
+  deliveryLine1             String?
+  deliveryLine2             String?
+  deliveryCity              String?
+  deliveryState             String?
+  deliveryPostcode          String?
+  deliveryCountry           String?
+  
+  // Additional job details (JSON for flexibility)
+  rawData                   Json?
+  
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  
+  // Relations
+  branding                  Branding? @relation("BrandingJobs", fields: [brandCode], references: [brandCode])
+  inventoryItems            InventoryItem[]
+  costingItems              CostingItem[]
+  
+  @@index([brandCode])
+  @@index([branchCode])
+  @@index([companyCode])
+  @@index([dateModified])
+}
+
+model InventoryItem {
+  id                Int      @id
+  jobId             Int
+  description       String?
+  room              String?
+  quantity          Int?
+  destination       String?
+  
+  // Additional fields that might be useful
+  cube              Float?
+  typeCode          String?
+  barcode           String?
+  
+  // Store full raw data for reference
+  rawData           Json?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  @@index([jobId])
+  @@index([description])
+}
+
+model CostingItem {
+  id                String   @id @default(cuid())
+  jobId             Int
+  
+  // Costing details (to be filled in when you provide the costings API payload)
+  category          String?
+  description       String?
+  quantity          Float?
+  unitPrice         Float?
+  totalPrice        Float?
+  
+  // Store full raw data for reference
+  rawData           Json?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  @@index([jobId])
 }
