@@ -1,48 +1,56 @@
 /**
- * Moveware API types for job activities and responses
+ * Type definitions for the Moveware API client
  */
 
-export interface MovewareActivityPayload {
-  activityType: 'acceptance';
-  timestamp: string;
-  customerDetails: {
-    name: string;
-    email: string;
-    phone: string;
-    address?: string;
-  };
-  serviceDetails: {
-    serviceType: string;
-    moveDate?: string;
-    details?: string;
-  };
-  acceptance: {
-    signatureData: string;
-    typedName: string;
-    acceptedTerms: boolean;
-    acceptedAt: string;
-  };
-  selectedOptions?: Record<string, any>;
-  comments?: string;
-}
-
-export interface MovewareActivityResponse {
-  success: boolean;
-  activityId?: string;
-  jobId?: string;
-  timestamp?: string;
-  error?: string;
-  message?: string;
-}
-
-export interface MovewareErrorResponse {
-  error: string;
-  code?: string;
-  details?: any;
-}
-
+/**
+ * Configuration for the Moveware API client
+ */
 export interface MovewareConfig {
-  apiUrl: string;
-  apiKey: string;
-  apiVersion: string;
+  baseUrl: string;
+  companyId: string;
+  username: string;
+  password: string;
+  version: string;
+}
+
+/**
+ * Response wrapper for Moveware API calls
+ */
+export interface MovewareResponse<T> {
+  data: T;
+  status: number;
+  headers: Headers;
+}
+
+/**
+ * Error structure for Moveware API errors
+ */
+export interface MovewareError {
+  status: number;
+  message: string;
+  code?: string;
+  details?: Record<string, unknown>;
+}
+
+/**
+ * Base pagination parameters
+ */
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+}
+
+/**
+ * Paginated response structure
+ */
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
