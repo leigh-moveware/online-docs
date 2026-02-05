@@ -1,5 +1,5 @@
 /**
- * Service layer for copy content CRUD operations using Prisma
+ * Service layer for copy content using Prisma
  */
 
 import { prisma } from '../db';
@@ -8,17 +8,32 @@ import { Copy } from '@prisma/client';
 export type CopyContent = Copy;
 
 class CopyService {
-  async getCopyByKey(key: string): Promise<CopyContent | null> {
+  /**
+   * Get copy for a specific company
+   */
+  async getCopy(companyId?: string): Promise<Copy | null> {
     try {
-      // Note: The Prisma model is 'Copy', not 'CopyContent'
-      // But we need to search by a field that exists in the schema
-      // The Copy model doesn't have a 'key' field, so we'll search by companyId
-      // This is a placeholder - adjust based on your actual use case
-      return await prisma.copy.findFirst({
-        where: { 
-          // Adjust this query based on your actual schema fields
-          companyId: key 
-        },
+      if (!companyId) {
+        // Get the first copy or from a default company
+        return await prisma.copy.findFirst();
+      }
+      return await prisma.copy.findUnique({
+        where: { companyId },
+      });
+    } catch (error) {
+      console.error('Error fetching copy:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get copy by key (legacy method for backward compatibility)
+   */
+  async getCopyByKey(key: string): Promise<Copy | null> {
+    try {
+      // Assuming 'key' is the companyId for now
+      return await prisma.copy.findUnique({
+        where: { companyId: key },
       });
     } catch (error) {
       console.error(`Error fetching copy for key ${key}:`, error);
@@ -26,18 +41,24 @@ class CopyService {
     }
   }
 
-  async getCopyByCompanyId(companyId: string): Promise<CopyContent | null> {
+  /**
+   * Get copy by section (returns the copy object, app can filter by section field)
+   */
+  async getCopyBySection(section: string): Promise<Copy | null> {
     try {
-      return await prisma.copy.findUnique({
-        where: { companyId },
-      });
+      // Since Copy model doesn't have a section field directly,
+      // this returns the first copy. Apps should handle section filtering.
+      return await prisma.copy.findFirst();
     } catch (error) {
-      console.error(`Error fetching copy for company ${companyId}:`, error);
+      console.error(`Error fetching copy for section ${section}:`, error);
       return null;
     }
   }
 
-  async createCopy(companyId: string, data: Partial<Copy>): Promise<CopyContent> {
+  /**
+   * Create new copy
+   */
+  async createCopy(companyId: string, data: Partial<Copy>): Promise<Copy> {
     try {
       return await prisma.copy.create({
         data: {
@@ -46,35 +67,44 @@ class CopyService {
         },
       });
     } catch (error) {
-      console.error(`Error creating copy:`, error);
+      console.error('Error creating copy:', error);
       throw error;
     }
   }
 
-  async updateCopy(companyId: string, data: Partial<Copy>): Promise<CopyContent> {
+  /**
+   * Update copy
+   */
+  async updateCopy(companyId: string, data: Partial<Copy>): Promise<Copy> {
     try {
       return await prisma.copy.update({
         where: { companyId },
         data,
       });
     } catch (error) {
-      console.error(`Error updating copy:`, error);
+      console.error('Error updating copy:', error);
       throw error;
     }
   }
 
+  /**
+   * Delete copy
+   */
   async deleteCopy(companyId: string): Promise<void> {
     try {
       await prisma.copy.delete({
         where: { companyId },
       });
     } catch (error) {
-      console.error(`Error deleting copy:`, error);
+      console.error('Error deleting copy:', error);
       throw error;
     }
   }
 
-  async upsertCopy(companyId: string, data: Partial<Copy>): Promise<CopyContent> {
+  /**
+   * Upsert copy
+   */
+  async upsertCopy(companyId: string, data: Partial<Copy>): Promise<Copy> {
     try {
       return await prisma.copy.upsert({
         where: { companyId },
@@ -85,7 +115,7 @@ class CopyService {
         update: data,
       });
     } catch (error) {
-      console.error(`Error upserting copy:`, error);
+      console.error('Error upserting copy:', error);
       throw error;
     }
   }
