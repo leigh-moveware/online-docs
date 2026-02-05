@@ -283,8 +283,9 @@ function QuotePageContent() {
             {/* Move Date */}
             {job.estimatedDeliveryDetails && (
               <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="font-semibold text-gray-700 mb-2">Scheduled Move Date</h4>
-                <p className="text-2xl font-bold" style={{ color: primaryColor }}>{job.estimatedDeliveryDetails}</p>
+                <h4 className="font-semibold text-gray-700">
+                  Scheduled Move Date <span className="font-bold" style={{ color: primaryColor }}>{job.estimatedDeliveryDetails}</span>
+                </h4>
               </div>
             )}
           </div>
