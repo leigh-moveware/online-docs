@@ -96,12 +96,7 @@ export type ConditionType =
 export type ConditionOperator = 
   | 'equals'
   | 'notEquals'
-  | 'contains'
-  | 'notContains'
-  | 'greaterThan'
-  | 'lessThan'
-  | 'in'
-  | 'notIn';
+  | 'contains';
 
 export interface Condition {
   id: string;
