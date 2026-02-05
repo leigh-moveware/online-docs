@@ -41,7 +41,7 @@ export default function QuotePage() {
 
   if (loading) {
     return (
-      <PageShell>
+      <PageShell includeHeader={false}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
@@ -54,7 +54,7 @@ export default function QuotePage() {
 
   if (error) {
     return (
-      <PageShell>
+      <PageShell includeHeader={false}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -74,7 +74,7 @@ export default function QuotePage() {
 
   if (!quoteData) {
     return (
-      <PageShell>
+      <PageShell includeHeader={false}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <p className="text-lg text-gray-600">No quote data available</p>
@@ -85,7 +85,7 @@ export default function QuotePage() {
   }
 
   return (
-    <PageShell>
+    <PageShell includeHeader={false}>
       <div className="min-h-screen bg-gray-50">
         {/* Page Header */}
         <div className="bg-white border-b border-gray-200">
