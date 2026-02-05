@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { PageShell } from '@/lib/components/layout';
 import { Loader2, AlertCircle } from 'lucide-react';
 import SignatureCanvas from '@/lib/components/forms/signature-canvas';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface Job {
   id: number;
@@ -82,7 +84,7 @@ function QuotePageContent() {
   
   // Form state for signature section
   const [signatureName, setSignatureName] = useState('');
-  const [reloFromDate, setReloFromDate] = useState('');
+  const [reloFromDate, setReloFromDate] = useState<Date | null>(null);
   const [insuredValue, setInsuredValue] = useState('');
   const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
   const [specialRequirements, setSpecialRequirements] = useState('');
@@ -237,6 +239,9 @@ function QuotePageContent() {
     try {
       setSubmitting(true);
       
+      // Format date as DD/MM/YYYY
+      const formattedDate = reloFromDate ? formatDate(reloFromDate) : '';
+      
       const response = await fetch('/api/quotes/accept', {
         method: 'POST',
         headers: {
@@ -246,7 +251,7 @@ function QuotePageContent() {
           jobId: jobId,
           costingItemId: selectedCostingId,
           signatureName,
-          reloFromDate,
+          reloFromDate: formattedDate,
           insuredValue,
           purchaseOrderNumber,
           specialRequirements,
@@ -578,7 +583,7 @@ function QuotePageContent() {
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Next Steps</h2>
             
-            <style jsx>{`
+            <style jsx global>{`
               @keyframes fadeInUp {
                 from {
                   opacity: 0;
@@ -617,6 +622,58 @@ function QuotePageContent() {
 
               .step-3 {
                 animation: fadeInUp 0.6s ease-out 3s both;
+              }
+
+              /* Custom DatePicker Styling */
+              .react-datepicker {
+                font-family: inherit;
+                border: 2px solid #e5e7eb;
+                border-radius: 0.5rem;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+              }
+
+              .react-datepicker__header {
+                background-color: ${primaryColor};
+                border-bottom: none;
+                border-radius: 0.5rem 0.5rem 0 0;
+                padding-top: 1rem;
+              }
+
+              .react-datepicker__current-month,
+              .react-datepicker__day-name {
+                color: white;
+                font-weight: 600;
+              }
+
+              .react-datepicker__day {
+                border-radius: 0.375rem;
+                transition: all 0.2s;
+              }
+
+              .react-datepicker__day:hover {
+                background-color: #fee;
+                color: ${primaryColor};
+              }
+
+              .react-datepicker__day--selected,
+              .react-datepicker__day--keyboard-selected {
+                background-color: ${primaryColor};
+                color: white;
+                font-weight: 600;
+              }
+
+              .react-datepicker__day--today {
+                font-weight: 600;
+                color: ${primaryColor};
+                border: 2px solid ${primaryColor};
+              }
+
+              .react-datepicker__navigation-icon::before {
+                border-color: white;
+              }
+
+              .react-datepicker__navigation:hover *::before {
+                border-color: #f0f0f0;
               }
             `}</style>
             
@@ -701,19 +758,23 @@ function QuotePageContent() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Relo From date: DD/MM/YYYY <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="date"
-                    value={reloFromDate}
-                    onChange={(e) => {
-                      setReloFromDate(e.target.value);
+                  <DatePicker
+                    selected={reloFromDate}
+                    onChange={(date) => {
+                      setReloFromDate(date);
                       if (errors.reloFromDate) {
                         setErrors({ ...errors, reloFromDate: '' });
                       }
                     }}
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText="Select move date"
+                    minDate={new Date()}
+                    showPopperArrow={false}
                     className={`w-full px-3 py-2 border rounded focus:ring-2 focus:border-transparent ${
                       errors.reloFromDate ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    style={{ outlineColor: primaryColor }}
+                    calendarClassName="custom-calendar"
+                    wrapperClassName="w-full"
                   />
                   {errors.reloFromDate && (
                     <p className="mt-1 text-sm text-red-600">{errors.reloFromDate}</p>
