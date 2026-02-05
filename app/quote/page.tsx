@@ -125,8 +125,13 @@ function QuotePageContent() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Intersection Observer for steps animation
+  // Intersection Observer for steps animation - only set up after content loads
   useEffect(() => {
+    // Don't set up observer if still loading or no job data
+    if (loading || !job) {
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -140,7 +145,7 @@ function QuotePageContent() {
       { threshold: 0, rootMargin: '0px 0px -50px 0px' }
     );
 
-    // Small delay to ensure DOM is ready
+    // Small delay to ensure DOM is ready after loading completes
     const timer = setTimeout(() => {
       const stepsSection = nextStepsRef.current;
       if (stepsSection) {
@@ -157,7 +162,7 @@ function QuotePageContent() {
         observer.unobserve(nextStepsRef.current);
       }
     };
-  }, []);
+  }, [loading, job]);
 
   useEffect(() => {
     if (jobId && companyId) {
