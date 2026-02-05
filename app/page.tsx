@@ -19,7 +19,7 @@ export default async function Home() {
   }
 
   // Use data or fallback to defaults
-  const title = heroData?.heading || 'Welcome to Moveware';
+  const title = heroData?.heading || 'Online Access';
   const subtitle = heroData?.subheading || 'Professional Documentation Platform';
   const ctaText = heroData?.ctaText || 'Get Started';
   const ctaUrl = heroData?.ctaUrl || '/getting-started';
@@ -198,29 +198,6 @@ export default async function Home() {
                 Sign up
               </a>
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action Section */}
-      <section className="py-16" style={{ backgroundColor: '#1A70B9' }}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to get started?
-            </h2>
-            <p className="mt-4 text-lg opacity-90" style={{ color: '#E3F2FD' }}>
-              Join thousands of teams already using Moveware for their documentation needs.
-            </p>
-            <div className="mt-8">
-              <a
-                href="/getting-started"
-                className="inline-block rounded-md bg-white hover:bg-gray-50 px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-                style={{ color: '#1A70B9' }}
-              >
-                Get Started Now
-              </a>
-            </div>
           </div>
         </div>
       </section>
