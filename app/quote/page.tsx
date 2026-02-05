@@ -130,22 +130,31 @@ function QuotePageContent() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          console.log('Next Steps Intersection:', entry.isIntersecting, entry.intersectionRatio);
           if (entry.isIntersecting) {
+            console.log('Setting animateSteps to true');
             setAnimateSteps(true);
           }
         });
       },
-      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+      { threshold: 0, rootMargin: '0px 0px -50px 0px' }
     );
 
-    const stepsSection = nextStepsRef.current;
-    if (stepsSection) {
-      observer.observe(stepsSection);
-    }
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      const stepsSection = nextStepsRef.current;
+      if (stepsSection) {
+        console.log('Observing steps section:', stepsSection);
+        observer.observe(stepsSection);
+      } else {
+        console.log('Steps section ref not found');
+      }
+    }, 100);
 
     return () => {
-      if (stepsSection) {
-        observer.unobserve(stepsSection);
+      clearTimeout(timer);
+      if (nextStepsRef.current) {
+        observer.unobserve(nextStepsRef.current);
       }
     };
   }, []);
