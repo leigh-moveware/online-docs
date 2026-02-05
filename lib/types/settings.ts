@@ -107,6 +107,7 @@ export interface Condition {
 }
 
 export interface DisplayConditions {
+  enabled?: boolean;
   conditions: Condition[];
   logic?: 'AND' | 'OR';
 }
