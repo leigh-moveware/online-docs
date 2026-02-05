@@ -25,7 +25,7 @@ interface CopySettings {
 
 interface CompanyBranding {
   id?: string;
-  companyId: number;
+  companyId: string;
   brandCode: string;
   companyName: string;
   logoUrl: string;
@@ -33,9 +33,19 @@ interface CompanyBranding {
   secondaryColor: string;
   tertiaryColor: string;
   fontFamily: string;
+  // Hero fields
+  heroHeading?: string;
+  heroSubheading?: string;
+  heroCtaText?: string;
+  heroCtaUrl?: string;
+  heroImageUrl?: string;
+  // Copy fields
+  tagline?: string;
+  description?: string;
+  metaDescription?: string;
 }
 
-type TabType = 'branding' | 'hero' | 'copy' | 'companies';
+type TabType = 'companies' | 'branding' | 'hero' | 'copy';
 
 function CompanyForm({
   company,
@@ -50,7 +60,7 @@ function CompanyForm({
 }) {
   const [formData, setFormData] = useState<CompanyBranding>(
     company || {
-      companyId: 0,
+      companyId: '',
       brandCode: '',
       companyName: '',
       logoUrl: '',
@@ -58,6 +68,14 @@ function CompanyForm({
       secondaryColor: '#fff',
       tertiaryColor: '#5a5a5a',
       fontFamily: 'Inter',
+      heroHeading: '',
+      heroSubheading: '',
+      heroCtaText: '',
+      heroCtaUrl: '',
+      heroImageUrl: '',
+      tagline: '',
+      description: '',
+      metaDescription: '',
     }
   );
 
@@ -74,12 +92,13 @@ function CompanyForm({
               Company ID <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
+              type="text"
               value={formData.companyId}
-              onChange={(e) => setFormData({ ...formData, companyId: parseInt(e.target.value) || 0 })}
+              onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="12"
             />
+            <p className="text-xs text-gray-500 mt-1">Numeric company ID</p>
           </div>
 
           <div>
@@ -195,6 +214,110 @@ function CompanyForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Inter"
           />
+        </div>
+
+        {/* Hero Section */}
+        <div className="pt-6 border-t border-gray-300">
+          <h4 className="text-md font-semibold text-gray-900 mb-4">Hero Content</h4>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Hero Image URL</label>
+              <input
+                type="text"
+                value={formData.heroImageUrl || ''}
+                onChange={(e) => setFormData({ ...formData, heroImageUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://example.com/hero.jpg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Hero Heading</label>
+              <input
+                type="text"
+                value={formData.heroHeading || ''}
+                onChange={(e) => setFormData({ ...formData, heroHeading: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Welcome to Our Service"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Hero Subheading</label>
+              <textarea
+                value={formData.heroSubheading || ''}
+                onChange={(e) => setFormData({ ...formData, heroSubheading: e.target.value })}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Brief description"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">CTA Text</label>
+                <input
+                  type="text"
+                  value={formData.heroCtaText || ''}
+                  onChange={(e) => setFormData({ ...formData, heroCtaText: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Get Started"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">CTA URL</label>
+                <input
+                  type="text"
+                  value={formData.heroCtaUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, heroCtaUrl: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="/quote"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Copy Section */}
+        <div className="pt-6 border-t border-gray-300">
+          <h4 className="text-md font-semibold text-gray-900 mb-4">Copy Content</h4>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tagline</label>
+              <input
+                type="text"
+                value={formData.tagline || ''}
+                onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Your moving partner"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                value={formData.description || ''}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Company description"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
+              <textarea
+                value={formData.metaDescription || ''}
+                onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="SEO meta description"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-300">
@@ -424,10 +547,10 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { id: 'branding' as TabType, label: 'Branding' },
-    { id: 'hero' as TabType, label: 'Hero Content' },
-    { id: 'copy' as TabType, label: 'Copy' },
     { id: 'companies' as TabType, label: 'Companies' },
+    { id: 'branding' as TabType, label: 'Legacy: Branding' },
+    { id: 'hero' as TabType, label: 'Legacy: Hero' },
+    { id: 'copy' as TabType, label: 'Legacy: Copy' },
   ];
 
   if (loadingData) {

@@ -3,14 +3,39 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// GET all companies
+// GET all companies with their hero and copy data
 export async function GET() {
   try {
-    const companies = await prisma.branding.findMany({
+    const brandings = await prisma.branding.findMany({
       orderBy: { companyName: 'asc' },
     });
 
-    return NextResponse.json(companies);
+    // Fetch hero and copy data for each company
+    const companiesWithAllData = await Promise.all(
+      brandings.map(async (branding) => {
+        const hero = await prisma.hero.findUnique({
+          where: { companyId: branding.companyId },
+        });
+
+        const copy = await prisma.copy.findUnique({
+          where: { companyId: branding.companyId },
+        });
+
+        return {
+          ...branding,
+          heroHeading: hero?.heading,
+          heroSubheading: hero?.subheading,
+          heroCtaText: hero?.ctaText,
+          heroCtaUrl: hero?.ctaUrl,
+          heroImageUrl: hero?.imageUrl,
+          tagline: copy?.tagline,
+          description: copy?.description,
+          metaDescription: copy?.metaDescription,
+        };
+      })
+    );
+
+    return NextResponse.json(companiesWithAllData);
   } catch (error) {
     console.error('Error fetching companies:', error);
     return NextResponse.json(
@@ -20,7 +45,7 @@ export async function GET() {
   }
 }
 
-// POST create or update company
+// POST create or update company (saves to Branding, Hero, and Copy tables)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -35,6 +60,14 @@ export async function POST(request: NextRequest) {
       secondaryColor,
       tertiaryColor,
       fontFamily,
+      heroHeading,
+      heroSubheading,
+      heroCtaText,
+      heroCtaUrl,
+      heroImageUrl,
+      tagline,
+      description,
+      metaDescription,
     } = body;
 
     // Validate required fields
@@ -45,11 +78,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let company;
+    let branding;
 
     if (id) {
-      // Update existing company
-      company = await prisma.branding.update({
+      // Update existing company branding
+      branding = await prisma.branding.update({
         where: { id },
         data: {
           companyId,
@@ -63,8 +96,8 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
-      // Create new company
-      company = await prisma.branding.create({
+      // Create new company branding
+      branding = await prisma.branding.create({
         data: {
           companyId,
           brandCode,
@@ -78,11 +111,50 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(company);
+    // Upsert Hero data
+    await prisma.hero.upsert({
+      where: { companyId },
+      update: {
+        heading: heroHeading || null,
+        subheading: heroSubheading || null,
+        ctaText: heroCtaText || null,
+        ctaUrl: heroCtaUrl || null,
+        imageUrl: heroImageUrl || null,
+      },
+      create: {
+        companyId,
+        heading: heroHeading || null,
+        subheading: heroSubheading || null,
+        ctaText: heroCtaText || null,
+        ctaUrl: heroCtaUrl || null,
+        imageUrl: heroImageUrl || null,
+      },
+    });
+
+    // Upsert Copy data
+    await prisma.copy.upsert({
+      where: { companyId },
+      update: {
+        tagline: tagline || null,
+        description: description || null,
+        metaDescription: metaDescription || null,
+      },
+      create: {
+        companyId,
+        tagline: tagline || null,
+        description: description || null,
+        metaDescription: metaDescription || null,
+      },
+    });
+
+    return NextResponse.json(branding);
   } catch (error) {
     console.error('Error saving company:', error);
     return NextResponse.json(
-      { error: 'Failed to save company' },
+      { 
+        error: 'Failed to save company',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
