@@ -38,40 +38,43 @@ Users can click the "Refresh" button to:
 
 ## API Endpoints
 
-### GET `/api/jobs/[jobId]`
+### GET `/api/jobs/[jobId]?coId={companyId}`
 
 Fetches job details:
 - **Tries database first** → Returns cached data if available
 - **Falls back to Moveware API** → Fetches and saves if not in database
 - Automatically syncs on first access
+- **Requires `coId` parameter** → Company ID for multi-tenant support
 
 **Example:**
 ```bash
-curl http://localhost:3000/api/jobs/111505
+curl "http://localhost:3000/api/jobs/111505?coId=ABC123"
 ```
 
-### GET `/api/jobs/[jobId]/inventory`
+### GET `/api/jobs/[jobId]/inventory?coId={companyId}`
 
 Fetches inventory items:
 - **Tries database first** → Returns cached inventory if available
 - **Falls back to Moveware API** → Fetches and saves if not in database
 - Automatically syncs on first access
+- **Requires `coId` parameter** → Company ID for multi-tenant support
 
 **Example:**
 ```bash
-curl http://localhost:3000/api/jobs/111505/inventory
+curl "http://localhost:3000/api/jobs/111505/inventory?coId=ABC123"
 ```
 
-### POST `/api/jobs/[jobId]/sync`
+### POST `/api/jobs/[jobId]/sync?coId={companyId}`
 
 Force synchronization from Moveware API:
 - **Always fetches fresh data** from Moveware API
 - Overwrites existing database data
 - Returns sync status and results
+- **Requires `coId` parameter** → Company ID for multi-tenant support
 
 **Example:**
 ```bash
-curl -X POST http://localhost:3000/api/jobs/111505/sync
+curl -X POST "http://localhost:3000/api/jobs/111505/sync?coId=ABC123"
 ```
 
 **Response:**
@@ -116,11 +119,25 @@ Ensure these are set in your `.env` file:
 MOVEWARE_API_URL=https://api.moveware.com
 MOVEWARE_USERNAME=your_username
 MOVEWARE_PASSWORD=your_password
-MOVEWARE_COMPANY_ID=your_company_id
 
 # Database Configuration
 DATABASE_URL=postgresql://user:password@localhost:5432/moveware_db
 ```
+
+### Dynamic Company ID
+
+**Important**: Company ID is now dynamic and must be passed as a URL parameter (`coId`) for multi-tenant support.
+
+**URL Format**:
+```
+http://localhost:3000/jobs/111505?coId=ABC123
+```
+
+The `coId` parameter:
+- Identifies which company's data to fetch from Moveware API
+- Required for all API endpoints
+- Enables multi-tenant functionality where different companies can access their own data
+- Passed through to Moveware API in the `mw-company-id` header
 
 ## Scheduled Sync (Optional)
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jobService } from '@/lib/services/jobService';
 import { inventoryService } from '@/lib/services/inventoryService';
-import { movewareClient } from '@/lib/clients/moveware';
+import { createMovewareClient } from '@/lib/clients/moveware';
 import { transformJobForDatabase, transformInventoryItemForDatabase } from '@/lib/types/job';
 
 /**
@@ -15,10 +15,22 @@ export async function POST(
   try {
     const { jobId } = await params;
 
+    // Extract company ID from URL parameter
+    const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get('coId');
+
     // Validate jobId parameter
     if (!jobId) {
       return NextResponse.json(
         { error: 'Job ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate company ID
+    if (!companyId) {
+      return NextResponse.json(
+        { error: 'Company ID (coId) parameter is required' },
         { status: 400 }
       );
     }
@@ -31,10 +43,13 @@ export async function POST(
       errors: [] as string[],
     };
 
+    // Create client with dynamic company ID
+    const movewareClient = createMovewareClient(companyId);
+
     // 1. Fetch and sync job data
     try {
-      console.log(`Syncing job ${jobId} from Moveware API...`);
-      const movewareJob = await movewareClient.get(`/jobs/${jobId}`);
+      console.log(`Syncing job ${jobId} from Moveware API (Company: ${companyId})...`);
+      const movewareJob = await movewareClient.get<any>(`/jobs/${jobId}`);
       
       if (movewareJob) {
         const jobData = transformJobForDatabase(movewareJob);
@@ -50,7 +65,7 @@ export async function POST(
     // 2. Fetch and sync inventory data
     try {
       console.log(`Syncing inventory for job ${jobId} from Moveware API...`);
-      const movewareInventory = await movewareClient.get(`/jobs/${jobId}/inventory`);
+      const movewareInventory = await movewareClient.get<any>(`/jobs/${jobId}/inventory`);
       
       if (movewareInventory && movewareInventory.inventoryUsage) {
         // Delete existing inventory for this job

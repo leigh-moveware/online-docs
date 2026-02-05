@@ -66,10 +66,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Accessing Quotes
 
-Visit a quote by job ID:
+Visit a quote by job ID with company ID parameter:
 ```
-http://localhost:3000/jobs/111505
+http://localhost:3000/jobs/111505?coId=ABC123
 ```
+
+**Parameters**:
+- `jobId` (path parameter): The job/quote ID
+- `coId` (query parameter): The company ID for multi-tenant support
 
 **First access**: System automatically fetches data from Moveware API and saves to database  
 **Subsequent access**: Data loads instantly from local database
@@ -85,13 +89,22 @@ npm start
 
 ### Data Flow
 
-1. **User visits** `/jobs/[jobId]`
-2. **System checks** PostgreSQL database for job data
-3. **If not found**: Fetches from Moveware API, transforms, and saves to database
-4. **If found**: Loads directly from database (fast!)
-5. **Displays** beautiful quote document
+1. **User visits** `/jobs/[jobId]?coId={companyId}`
+2. **System extracts** company ID from URL parameter
+3. **System checks** PostgreSQL database for job data
+4. **If not found**: Fetches from Moveware API using company ID, transforms, and saves to database
+5. **If found**: Loads directly from database (fast!)
+6. **Displays** beautiful quote document
 
 See [DATA_SYNC.md](./DATA_SYNC.md) for detailed documentation.
+
+### Multi-Tenant Support
+
+The system supports multiple companies through dynamic company ID:
+- Company ID is passed via URL parameter (`coId`)
+- Each company's data is isolated in Moveware API
+- Local database caches data from all companies
+- No hardcoded company IDs required
 
 ## Project Structure
 
@@ -204,7 +217,9 @@ DATABASE_URL=postgresql://user:pass@host:5432/db
 MOVEWARE_API_URL=https://api.moveware.com
 MOVEWARE_USERNAME=your_username
 MOVEWARE_PASSWORD=your_password
-MOVEWARE_COMPANY_ID=your_company_id
+
+# Note: Company ID is now dynamic from URL parameter (coId)
+# MOVEWARE_COMPANY_ID is no longer required
 ```
 
 ### Optional
@@ -237,10 +252,11 @@ NEXT_PUBLIC_APP_URL=https://quotes.moveware.com
 
 ### "Job not found" error
 
-1. Check Moveware API credentials in `.env`
-2. Verify job exists in Moveware: `curl https://api.moveware.com/jobs/111505`
-3. Check server logs for API errors
-4. Try manual sync: `curl -X POST http://localhost:3000/api/jobs/111505/sync`
+1. Ensure `coId` parameter is included in URL
+2. Check Moveware API credentials in `.env`
+3. Verify job exists in Moveware for that company
+4. Check server logs for API errors
+5. Try manual sync: `curl -X POST "http://localhost:3000/api/jobs/111505/sync?coId=ABC123"`
 
 ### Database connection issues
 
@@ -253,7 +269,7 @@ NEXT_PUBLIC_APP_URL=https://quotes.moveware.com
 
 Click the "Refresh" button on the quote page, or call:
 ```bash
-curl -X POST http://localhost:3000/api/jobs/111505/sync
+curl -X POST "http://localhost:3000/api/jobs/111505/sync?coId=ABC123"
 ```
 
 ## Learn More

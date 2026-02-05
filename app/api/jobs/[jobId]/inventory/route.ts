@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { inventoryService } from '@/lib/services/inventoryService';
-import { movewareClient } from '@/lib/clients/moveware';
+import { createMovewareClient } from '@/lib/clients/moveware';
 import { transformInventoryItemForDatabase } from '@/lib/types/job';
 
 export async function GET(
@@ -10,10 +10,22 @@ export async function GET(
   try {
     const { jobId } = await params;
 
+    // Extract company ID from URL parameter
+    const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get('coId');
+
     // Validate jobId parameter
     if (!jobId) {
       return NextResponse.json(
         { error: 'Job ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate company ID
+    if (!companyId) {
+      return NextResponse.json(
+        { error: 'Company ID (coId) parameter is required' },
         { status: 400 }
       );
     }
@@ -25,11 +37,14 @@ export async function GET(
 
     // If no inventory in database, fetch from Moveware API and save
     if (!inventory || inventory.length === 0) {
-      console.log(`Inventory for job ${jobId} not found in database. Fetching from Moveware API...`);
+      console.log(`Inventory for job ${jobId} not found in database. Fetching from Moveware API (Company: ${companyId})...`);
       
       try {
-        // Fetch from Moveware API
-        const movewareInventory = await movewareClient.get(`/jobs/${jobId}/inventory`);
+        // Create client with dynamic company ID
+        const movewareClient = createMovewareClient(companyId);
+        
+        // Fetch from Moveware API - returns data directly
+        const movewareInventory = await movewareClient.get<any>(`/jobs/${jobId}/inventory`);
         
         if (!movewareInventory || !movewareInventory.inventoryUsage) {
           console.log(`No inventory found in Moveware API for job ${jobId}`);

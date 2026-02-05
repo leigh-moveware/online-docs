@@ -60,28 +60,37 @@ export default function JobQuotePage() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string>('');
 
   useEffect(() => {
-    if (jobId) {
-      fetchJobData();
+    // Extract company ID from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const coId = urlParams.get('coId') || '';
+    setCompanyId(coId);
+
+    if (jobId && coId) {
+      fetchJobData(coId);
+    } else if (jobId && !coId) {
+      setError('Company ID (coId) parameter is missing from URL');
+      setLoading(false);
     }
   }, [jobId]);
 
-  const fetchJobData = async () => {
+  const fetchJobData = async (coId: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch job details
-      const jobResponse = await fetch(`/api/jobs/${jobId}`);
+      // Fetch job details with company ID
+      const jobResponse = await fetch(`/api/jobs/${jobId}?coId=${coId}`);
       const jobResult = await jobResponse.json();
 
       if (!jobResponse.ok || !jobResult.success) {
         throw new Error(jobResult.error || 'Failed to load job');
       }
 
-      // Fetch inventory
-      const inventoryResponse = await fetch(`/api/jobs/${jobId}/inventory`);
+      // Fetch inventory with company ID
+      const inventoryResponse = await fetch(`/api/jobs/${jobId}/inventory?coId=${coId}`);
       const inventoryResult = await inventoryResponse.json();
 
       setJob(jobResult.data);
@@ -98,7 +107,7 @@ export default function JobQuotePage() {
     try {
       setSyncing(true);
       
-      const syncResponse = await fetch(`/api/jobs/${jobId}/sync`, {
+      const syncResponse = await fetch(`/api/jobs/${jobId}/sync?coId=${companyId}`, {
         method: 'POST',
       });
       
@@ -109,7 +118,7 @@ export default function JobQuotePage() {
       }
 
       // Refresh the page data
-      await fetchJobData();
+      await fetchJobData(companyId);
     } catch (err) {
       console.error('Error syncing data:', err);
       setError(err instanceof Error ? err.message : 'Failed to sync data from Moveware');

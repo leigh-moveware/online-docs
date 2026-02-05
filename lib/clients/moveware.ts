@@ -1,16 +1,16 @@
 /**
  * Moveware API Client
  * Provides authenticated HTTP requests to the Moveware API
+ * Supports dynamic company ID for multi-tenant applications
  */
 
 import { MovewareConfig, MovewareResponse, MovewareError } from '../types/moveware';
 
 /**
- * Configuration for the Moveware API client
+ * Base configuration for the Moveware API client (without company ID)
  */
-const config: MovewareConfig = {
+const baseConfig = {
   baseUrl: process.env.MOVEWARE_API_URL || '',
-  companyId: process.env.MOVEWARE_COMPANY_ID || '',
   username: process.env.MOVEWARE_USERNAME || '',
   password: process.env.MOVEWARE_PASSWORD || '',
   version: process.env.MOVEWARE_API_VERSION || 'v1',
@@ -19,13 +19,13 @@ const config: MovewareConfig = {
 /**
  * Validates that all required configuration is present
  */
-function validateConfig(): void {
+function validateConfig(companyId?: string): void {
   const missing: string[] = [];
   
-  if (!config.baseUrl) missing.push('MOVEWARE_API_URL');
-  if (!config.companyId) missing.push('MOVEWARE_COMPANY_ID');
-  if (!config.username) missing.push('MOVEWARE_USERNAME');
-  if (!config.password) missing.push('MOVEWARE_PASSWORD');
+  if (!baseConfig.baseUrl) missing.push('MOVEWARE_API_URL');
+  if (!companyId) missing.push('companyId (from URL parameter)');
+  if (!baseConfig.username) missing.push('MOVEWARE_USERNAME');
+  if (!baseConfig.password) missing.push('MOVEWARE_PASSWORD');
   
   if (missing.length > 0) {
     throw new Error(`Missing required Moveware API configuration: ${missing.join(', ')}`);
@@ -35,11 +35,11 @@ function validateConfig(): void {
 /**
  * Creates authentication headers for Moveware API requests
  */
-function getAuthHeaders(): Record<string, string> {
+function getAuthHeaders(companyId: string): Record<string, string> {
   return {
-    'mw-company-id': config.companyId || '',
-    'mw-username': config.username || '',
-    'mw-password': config.password || '',
+    'mw-company-id': companyId,
+    'mw-username': baseConfig.username,
+    'mw-password': baseConfig.password,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
@@ -50,17 +50,18 @@ function getAuthHeaders(): Record<string, string> {
  */
 async function request<T>(
   endpoint: string,
+  companyId: string,
   options: RequestInit = {}
 ): Promise<MovewareResponse<T>> {
-  validateConfig();
+  validateConfig(companyId);
   
-  const url = `${config.baseUrl}/${config.version}${endpoint}`;
+  const url = `${baseConfig.baseUrl}/${baseConfig.version}${endpoint}`;
   
   try {
     const response = await fetch(url, {
       ...options,
       headers: {
-        ...getAuthHeaders(),
+        ...getAuthHeaders(companyId),
         ...options.headers,
       },
     });
@@ -98,71 +99,85 @@ async function request<T>(
 }
 
 /**
- * Moveware API Client
+ * Factory function to create a Moveware API Client with a specific company ID
+ * This allows for multi-tenant support where company ID comes from the URL
  */
-export const movewareClient = {
-  /**
-   * Makes a GET request
-   */
-  async get<T>(endpoint: string, params?: Record<string, string>): Promise<MovewareResponse<T>> {
-    let url = endpoint;
-    if (params) {
-      const queryString = new URLSearchParams(params).toString();
-      url = `${endpoint}?${queryString}`;
-    }
+export function createMovewareClient(companyId: string) {
+  return {
+    /**
+     * Makes a GET request
+     */
+    async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+      let url = endpoint;
+      if (params) {
+        const queryString = new URLSearchParams(params).toString();
+        url = `${endpoint}?${queryString}`;
+      }
+      
+      const response = await request<T>(url, companyId, {
+        method: 'GET',
+      });
+      return response.data;
+    },
     
-    return request<T>(url, {
-      method: 'GET',
-    });
-  },
-  
-  /**
-   * Makes a POST request
-   */
-  async post<T>(endpoint: string, body: unknown): Promise<MovewareResponse<T>> {
-    return request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  },
-  
-  /**
-   * Makes a PUT request
-   */
-  async put<T>(endpoint: string, body: unknown): Promise<MovewareResponse<T>> {
-    return request<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    });
-  },
-  
-  /**
-   * Makes a PATCH request
-   */
-  async patch<T>(endpoint: string, body: unknown): Promise<MovewareResponse<T>> {
-    return request<T>(endpoint, {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-    });
-  },
-  
-  /**
-   * Makes a DELETE request
-   */
-  async delete<T>(endpoint: string): Promise<MovewareResponse<T>> {
-    return request<T>(endpoint, {
-      method: 'DELETE',
-    });
-  },
-  
-  /**
-   * Gets the current configuration (without sensitive data)
-   */
-  getConfig: () => ({
-    baseUrl: config.baseUrl,
-    version: config.version,
-    companyId: config.companyId ? '***' : '',
-  }),
-};
+    /**
+     * Makes a POST request
+     */
+    async post<T>(endpoint: string, body: unknown): Promise<T> {
+      const response = await request<T>(endpoint, companyId, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      return response.data;
+    },
+    
+    /**
+     * Makes a PUT request
+     */
+    async put<T>(endpoint: string, body: unknown): Promise<T> {
+      const response = await request<T>(endpoint, companyId, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+      return response.data;
+    },
+    
+    /**
+     * Makes a PATCH request
+     */
+    async patch<T>(endpoint: string, body: unknown): Promise<T> {
+      const response = await request<T>(endpoint, companyId, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      });
+      return response.data;
+    },
+    
+    /**
+     * Makes a DELETE request
+     */
+    async delete<T>(endpoint: string): Promise<T> {
+      const response = await request<T>(endpoint, companyId, {
+        method: 'DELETE',
+      });
+      return response.data;
+    },
+    
+    /**
+     * Gets the current configuration (without sensitive data)
+     */
+    getConfig: () => ({
+      baseUrl: baseConfig.baseUrl,
+      version: baseConfig.version,
+      companyId: companyId ? '***' : '',
+    }),
+  };
+}
+
+/**
+ * Default client for backward compatibility (uses MOVEWARE_COMPANY_ID from env)
+ * @deprecated Use createMovewareClient(companyId) for multi-tenant support
+ */
+export const movewareClient = createMovewareClient(process.env.MOVEWARE_COMPANY_ID || '');
 
 export default movewareClient;
