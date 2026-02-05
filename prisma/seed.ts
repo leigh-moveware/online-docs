@@ -14,14 +14,20 @@ async function main() {
   console.log('Creating branding for MWB...');
   const branding = await prisma.branding.upsert({
     where: { brandCode: 'MWB' },
-    update: {},
+    update: {
+      logoUrl: '/images/crown_logo.svg',
+      primaryColor: '#c00',
+      secondaryColor: '#fff',
+      tertiaryColor: '#5a5a5a',
+    },
     create: {
       companyId: 'crown-worldwide',
       brandCode: 'MWB',
       companyName: 'Crown Worldwide',
-      logoUrl: 'https://via.placeholder.com/300x100/1E40AF/FFFFFF?text=Crown+Worldwide',
-      primaryColor: '#1E40AF',
-      secondaryColor: '#3B82F6',
+      logoUrl: '/images/crown_logo.svg',
+      primaryColor: '#c00',
+      secondaryColor: '#fff',
+      tertiaryColor: '#5a5a5a',
       fontFamily: 'Inter',
     },
   });

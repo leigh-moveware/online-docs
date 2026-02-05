@@ -17,6 +17,7 @@ model Branding {
   logoUrl        String?
   primaryColor   String?
   secondaryColor String?
+  tertiaryColor  String?
   fontFamily     String?
   companyName    String?
   favicon        String?

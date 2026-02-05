@@ -176,7 +176,8 @@ function QuotePageContent() {
                   <img 
                     src={logoUrl} 
                     alt={companyName}
-                    className="h-14 w-auto object-contain mb-6"
+                    style={{ maxWidth: '250px' }}
+                    className="w-auto object-contain mb-6"
                   />
                 ) : (
                   <h1 className="text-2xl font-bold mb-6" style={{ color: primaryColor }}>{companyName}</h1>
@@ -193,41 +194,13 @@ function QuotePageContent() {
               {/* Right - Banner Image */}
               <div className="hidden md:block">
                 <div className="rounded-xl overflow-hidden shadow-md">
-                  <div className="aspect-video bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <svg className="w-20 h-20 mx-auto mb-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                      <p className="text-lg font-semibold text-gray-700">Your Move, Simplified</p>
-                    </div>
-                  </div>
+                  <img 
+                    src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&h=450&fit=crop" 
+                    alt="Professional moving services"
+                    className="w-full h-full object-cover aspect-video"
+                  />
                 </div>
               </div>
-            </div>
-
-            {/* Sync Button */}
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={syncFromMoveware}
-                disabled={syncing}
-                className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
-                title="Refresh data from Moveware API"
-              >
-                <svg 
-                  className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-                  />
-                </svg>
-                <span>{syncing ? 'Syncing...' : 'Refresh'}</span>
-              </button>
             </div>
           </div>
         </div>
