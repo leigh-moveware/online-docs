@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageShell } from '@/lib/components/layout';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -51,7 +51,7 @@ interface InventoryItem {
   typeCode?: string;
 }
 
-export default function QuotePage() {
+function QuotePageContent() {
   const searchParams = useSearchParams();
   const jobId = searchParams.get('jobId');
   const companyId = searchParams.get('coId');
@@ -628,5 +628,22 @@ export default function QuotePage() {
         </div>
       </div>
     </PageShell>
+  );
+}
+
+export default function QuotePage() {
+  return (
+    <Suspense fallback={
+      <PageShell includeHeader={false}>
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+            <p className="text-lg text-gray-600">Loading quote...</p>
+          </div>
+        </div>
+      </PageShell>
+    }>
+      <QuotePageContent />
+    </Suspense>
   );
 }
