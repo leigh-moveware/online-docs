@@ -434,52 +434,6 @@ export default function SettingsPage() {
     loadSettings();
   }, []);
 
-  const handleSave = async () => {
-    setLoading(true);
-    setSuccess(null);
-    setError(null);
-
-    try {
-      let endpoint = '';
-      let data = {};
-
-      switch (activeTab) {
-        case 'branding':
-          endpoint = '/api/settings/branding';
-          data = branding;
-          break;
-        case 'hero':
-          endpoint = '/api/settings/hero';
-          data = hero;
-          break;
-        case 'copy':
-          endpoint = '/api/settings/copy';
-          data = copy;
-          break;
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save settings');
-      }
-
-      setSuccess('Settings saved successfully!');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSaveCompany = async (company: CompanyBranding) => {
     setLoading(true);
     setSuccess(null);
@@ -887,24 +841,6 @@ export default function SettingsPage() {
               )}
             </div>
           )}
-
-          {/* Save Button */}
-          <div className="flex justify-end pt-6 border-t border-gray-200">
-            <Button
-              onClick={handleSave}
-              disabled={loading}
-              className="min-w-[120px]"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </div>
         </div>
       </div>
     </PageShell>
