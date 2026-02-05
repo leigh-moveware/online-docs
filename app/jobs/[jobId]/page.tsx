@@ -149,7 +149,7 @@ export default function JobQuotePage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Quote</h2>
             <p className="text-gray-600 mb-6">{error || 'Job not found'}</p>
             <button
-              onClick={fetchJobData}
+              onClick={() => companyId && fetchJobData(companyId)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
             >
               Try Again
