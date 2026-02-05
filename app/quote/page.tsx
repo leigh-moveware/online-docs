@@ -692,7 +692,13 @@ function QuotePageContent() {
                         <td className="px-6 py-4 text-center text-sm text-gray-900">{item.quantity || 1}</td>
                         <td className="px-6 py-4 text-center text-sm text-gray-900">{item.cube?.toFixed(2) || '0.00'}</td>
                         <td className="px-6 py-4 text-center">
-                          <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                          <span 
+                            className="inline-block px-2 py-1 text-xs font-medium rounded"
+                            style={{ 
+                              backgroundColor: `${primaryColor}15`,
+                              color: primaryColor 
+                            }}
+                          >
                             {item.typeCode || 'N/A'}
                           </span>
                         </td>
