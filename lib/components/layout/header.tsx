@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
@@ -19,8 +20,15 @@ export function Header() {
         <div className="flex w-full items-center justify-between py-4">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-              Moveware
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+              <Image
+                src="/images/moveware-logo.png"
+                alt="Moveware"
+                width={180}
+                height={33}
+                priority
+                className="h-8 w-auto"
+              />
             </Link>
           </div>
 
@@ -30,14 +38,17 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="text-gray-700 font-medium transition-colors hover:text-[#1A70B9]"
               >
                 {item.name}
               </Link>
             ))}
             <Link
               href="/quote"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2"
+              style={{ backgroundColor: '#1A70B9' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#155a94'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1A70B9'}
             >
               Sign In
             </Link>
@@ -47,7 +58,8 @@ export function Header() {
           <div className="flex md:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-600"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset"
+              style={{ '--tw-ring-color': '#1A70B9' } as React.CSSProperties}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}
             >
@@ -68,7 +80,7 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
+                className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 rounded-md transition-colors hover:text-[#1A70B9]"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
@@ -78,7 +90,8 @@ export function Header() {
               <Link
                 href="/quote"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-center"
+                className="block w-full text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 text-center"
+                style={{ backgroundColor: '#1A70B9' }}
               >
                 Sign In
               </Link>

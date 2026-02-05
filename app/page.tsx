@@ -49,10 +49,10 @@ export default async function Home() {
               backgroundPosition: 'center',
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-purple-900/90" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(26, 112, 185, 0.9), rgba(123, 31, 162, 0.9))' }} />
           </div>
         ) : (
-          <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700" />
+          <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(to bottom right, #1A70B9, #1558a0, #7B1FA2)' }} />
         )}
 
         {/* Content */}
@@ -105,7 +105,8 @@ export default async function Home() {
                   id="email"
                   name="email"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                  style={{ '--tw-ring-color': '#1A70B9' } as React.CSSProperties}
                   placeholder="you@example.com"
                 />
               </div>
@@ -120,7 +121,8 @@ export default async function Home() {
                   id="password"
                   name="password"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all outline-none"
+                  style={{ '--tw-ring-color': '#1A70B9' } as React.CSSProperties}
                   placeholder="••••••••"
                 />
               </div>
@@ -132,13 +134,14 @@ export default async function Home() {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-300"
+                    style={{ accentColor: '#1A70B9' }}
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                     Remember me
                   </label>
                 </div>
-                <a href="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                <a href="/forgot-password" className="text-sm font-medium hover:opacity-80" style={{ color: '#1A70B9' }}>
                   Forgot password?
                 </a>
               </div>
@@ -146,7 +149,10 @@ export default async function Home() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                className="w-full text-white py-3 px-4 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                style={{ backgroundColor: '#1A70B9' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#155a94'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1A70B9'}
               >
                 Sign In
               </button>
@@ -190,7 +196,7 @@ export default async function Home() {
             {/* Sign Up Link */}
             <p className="mt-6 text-center text-sm text-gray-600">
               Don't have an account?{' '}
-              <a href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+              <a href="/signup" className="font-medium hover:opacity-80" style={{ color: '#1A70B9' }}>
                 Sign up
               </a>
             </p>
@@ -199,19 +205,22 @@ export default async function Home() {
       </section>
 
       {/* Call to Action Section */}
-      <section className="bg-blue-600 py-16">
+      <section className="py-16" style={{ backgroundColor: '#1A70B9' }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
               Ready to get started?
             </h2>
-            <p className="mt-4 text-lg text-blue-100">
+            <p className="mt-4 text-lg opacity-90" style={{ color: '#E3F2FD' }}>
               Join thousands of teams already using Moveware for their documentation needs.
             </p>
             <div className="mt-8">
               <a
                 href="/getting-started"
-                className="inline-block rounded-md bg-white px-8 py-3 text-base font-semibold text-blue-600 shadow-lg transition-all hover:bg-blue-50 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+                className="inline-block rounded-md bg-white px-8 py-3 text-base font-semibold shadow-lg transition-all hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+                style={{ color: '#1A70B9' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F5F5F5'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
               >
                 Get Started Now
               </a>
