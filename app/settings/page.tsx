@@ -27,8 +27,6 @@ interface CompanyBranding {
   metaDescription?: string;
 }
 
-type TabType = 'companies';
-
 function CompanyForm({
   company,
   onSave,
@@ -324,7 +322,6 @@ function CompanyForm({
 }
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('companies');
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
@@ -420,10 +417,6 @@ export default function SettingsPage() {
       setLoading(false);
     }
   };
-
-  const tabs = [
-    { id: 'companies' as TabType, label: 'Companies' },
-  ];
 
   if (loadingData) {
     return (
