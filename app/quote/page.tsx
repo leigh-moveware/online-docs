@@ -438,7 +438,51 @@ function QuotePageContent() {
             </div>
           )}
 
-          {/* Next Step - Signature Form */}
+          {/* Next Steps - Horizontal Indicator */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Step 1 */}
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold mx-auto mb-3">
+                  1
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Review Your Quote</h4>
+                <p className="text-sm text-gray-600">Please review all details including the inventory list, services, and pricing.</p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold mx-auto mb-3">
+                  2
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Contact Us</h4>
+                <p className="text-sm text-gray-600">If you have any questions or need adjustments, our team is here to help.</p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold mx-auto mb-3">
+                  3
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2">Confirm Your Booking</h4>
+                <p className="text-sm text-gray-600">Once you're ready, confirm your booking to secure your move date.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Terms & Conditions */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Terms & Conditions</h3>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>• This quote is valid for 30 days from the date of issue.</li>
+              <li>• All prices are in Australian Dollars (AUD) and include GST.</li>
+              <li>• Final pricing may vary based on actual inventory and conditions.</li>
+              <li>• Payment: 50% deposit to confirm, balance due on completion.</li>
+              <li>• Cancellation: Full refund if cancelled 7+ days before move date.</li>
+            </ul>
+          </div>
+
+          {/* Signature Form */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Next Step</h2>
             <p className="text-sm text-gray-700 mb-6">
