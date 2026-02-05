@@ -102,7 +102,7 @@ export interface Condition {
   id?: string;
   type: ConditionType;
   operator: ConditionOperator;
-  value: string | number | boolean | string[];
+  value: string | number | string[];
   field?: string;
 }
 
