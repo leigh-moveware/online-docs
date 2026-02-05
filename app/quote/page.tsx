@@ -7,7 +7,6 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import SignatureCanvas from '@/lib/components/forms/signature-canvas';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import html2pdf from 'html2pdf.js';
 
 interface Job {
   id: number;
@@ -274,6 +273,9 @@ function QuotePageContent() {
 
     try {
       setGeneratingPdf(true);
+
+      // Dynamically import html2pdf to avoid SSR issues
+      const html2pdf = (await import('html2pdf.js')).default;
 
       const customerName = `${job.titleName || ''} ${job.firstName || ''} ${job.lastName || ''}`.trim();
       const companyName = job.branding?.companyName || 'MOVEWARE';
