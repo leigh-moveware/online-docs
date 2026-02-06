@@ -8,7 +8,7 @@ import { PerformanceReviewApiResponse, Question } from '@/lib/types/performance'
 function transformQuestion(apiQuestion: any): Question {
   return {
     id: apiQuestion.id || apiQuestion.questionId,
-    type: apiQuestion.type || apiQuestion.questionType,
+    type: apiQuestion.controlType || apiQuestion.type || apiQuestion.questionType,
     text: apiQuestion.text || apiQuestion.question,
     required: apiQuestion.required ?? false,
     options: apiQuestion.options?.map((opt: any) => ({
