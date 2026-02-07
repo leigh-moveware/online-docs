@@ -27,15 +27,30 @@ function mapControlType(controlType: string): QuestionType {
 function transformQuestion(apiQuestion: any): Question {
   const controlType = apiQuestion.controlType || apiQuestion.type || apiQuestion.questionType;
   
+  // Log questions with options to debug
+  if (controlType === 'Combo' || controlType === 'Checkbox' || controlType === 'Lookup') {
+    console.log(`[Transform] ${controlType} question:`, JSON.stringify({
+      id: apiQuestion.id,
+      text: apiQuestion.text,
+      options: apiQuestion.options,
+      choices: apiQuestion.choices,
+      values: apiQuestion.values,
+      items: apiQuestion.items,
+    }, null, 2));
+  }
+  
+  // Try multiple possible field names for options
+  const rawOptions = apiQuestion.options || apiQuestion.choices || apiQuestion.values || apiQuestion.items;
+  
   return {
     id: apiQuestion.id || apiQuestion.questionId,
     type: mapControlType(controlType),
     text: apiQuestion.text || apiQuestion.question,
     required: apiQuestion.required ?? false,
-    options: apiQuestion.options?.map((opt: any) => ({
-      id: opt.id || opt.value,
-      label: opt.label || opt.text,
-      value: opt.value,
+    options: rawOptions?.map((opt: any) => ({
+      id: opt.id || opt.value || opt.key,
+      label: opt.label || opt.text || opt.name || opt.value,
+      value: opt.value || opt.key || opt.id,
     })),
     maxRating: apiQuestion.maxRating || apiQuestion.scale || 5,
     placeholder: apiQuestion.placeholder || 'Enter your comments...',
@@ -110,6 +125,9 @@ export async function GET(
           { status: 404 }
         );
       }
+
+      // Log raw questions to debug options
+      console.log('[Questions API] Raw questions from Moveware:', JSON.stringify(apiResponse.questions, null, 2));
 
       // Transform questions
       const questions: Question[] = Array.isArray(apiResponse.questions)
