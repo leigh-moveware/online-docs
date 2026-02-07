@@ -3,12 +3,33 @@ import { createMovewareClient } from '@/lib/clients/moveware';
 import { PerformanceReviewApiResponse, Question } from '@/lib/types/performance';
 
 /**
+ * Map Moveware API controlType to our question types
+ */
+function mapControlType(controlType: string): string {
+  const typeMap: Record<string, string> = {
+    'Textbox': 'comment',      // Text input → comment field
+    'Combo': 'radio',          // Dropdown → radio buttons
+    'Checkbox': 'checkbox',    // Checkbox → checkbox (already matches)
+    'Valuation': 'rating',     // Star rating → rating field
+    'Lookup': 'radio',         // Lookup → radio buttons
+    'YesNo': 'yesno',          // Yes/No → yesno field
+    'Comment': 'comment',      // Comment → comment field
+    'Rating': 'rating',        // Rating → rating field
+    'Radio': 'radio',          // Radio → radio field
+  };
+  
+  return typeMap[controlType] || controlType.toLowerCase();
+}
+
+/**
  * Transform Moveware API question data to our format
  */
 function transformQuestion(apiQuestion: any): Question {
+  const controlType = apiQuestion.controlType || apiQuestion.type || apiQuestion.questionType;
+  
   return {
     id: apiQuestion.id || apiQuestion.questionId,
-    type: apiQuestion.controlType || apiQuestion.type || apiQuestion.questionType,
+    type: mapControlType(controlType),
     text: apiQuestion.text || apiQuestion.question,
     required: apiQuestion.required ?? false,
     options: apiQuestion.options?.map((opt: any) => ({
