@@ -16,6 +16,9 @@ function mapControlType(controlType: string): QuestionType {
     'Comment': 'comment',      // Comment → comment field
     'Rating': 'rating',        // Rating → rating field
     'Radio': 'radio',          // Radio → radio field
+    'Date': 'date',            // Date picker
+    'Time': 'time',            // Time picker
+    'DateTime': 'datetime',    // Date & Time picker
   };
   
   return typeMap[controlType] || 'comment'; // Default to comment for unknown types

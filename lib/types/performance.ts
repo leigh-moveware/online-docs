@@ -2,7 +2,7 @@
  * Performance Review & Survey Types
  */
 
-export type QuestionType = 'rating' | 'yesno' | 'radio' | 'checkbox' | 'comment';
+export type QuestionType = 'rating' | 'yesno' | 'radio' | 'checkbox' | 'comment' | 'date' | 'time' | 'datetime';
 
 export interface QuestionOption {
   id: string;

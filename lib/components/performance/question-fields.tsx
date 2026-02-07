@@ -193,6 +193,63 @@ export function CommentField({ question, value, onChange, readOnly }: QuestionFi
 }
 
 /**
+ * Date Field Component
+ */
+export function DateField({ question, value, onChange, readOnly }: QuestionFieldProps) {
+  const currentValue = typeof value === 'string' ? value : '';
+
+  return (
+    <div>
+      <input
+        type="date"
+        value={currentValue}
+        onChange={(e) => !readOnly && onChange(e.target.value)}
+        disabled={readOnly}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:bg-gray-50 disabled:text-gray-600"
+      />
+    </div>
+  );
+}
+
+/**
+ * Time Field Component
+ */
+export function TimeField({ question, value, onChange, readOnly }: QuestionFieldProps) {
+  const currentValue = typeof value === 'string' ? value : '';
+
+  return (
+    <div>
+      <input
+        type="time"
+        value={currentValue}
+        onChange={(e) => !readOnly && onChange(e.target.value)}
+        disabled={readOnly}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:bg-gray-50 disabled:text-gray-600"
+      />
+    </div>
+  );
+}
+
+/**
+ * DateTime Field Component
+ */
+export function DateTimeField({ question, value, onChange, readOnly }: QuestionFieldProps) {
+  const currentValue = typeof value === 'string' ? value : '';
+
+  return (
+    <div>
+      <input
+        type="datetime-local"
+        value={currentValue}
+        onChange={(e) => !readOnly && onChange(e.target.value)}
+        disabled={readOnly}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:bg-gray-50 disabled:text-gray-600"
+      />
+    </div>
+  );
+}
+
+/**
  * Generic Question Field Component
  * Renders the appropriate field based on question type
  */
@@ -209,6 +266,12 @@ export function QuestionField({ question, value, onChange, readOnly }: QuestionF
         return <CheckboxField question={question} value={value} onChange={onChange} readOnly={readOnly} />;
       case 'comment':
         return <CommentField question={question} value={value} onChange={onChange} readOnly={readOnly} />;
+      case 'date':
+        return <DateField question={question} value={value} onChange={onChange} readOnly={readOnly} />;
+      case 'time':
+        return <TimeField question={question} value={value} onChange={onChange} readOnly={readOnly} />;
+      case 'datetime':
+        return <DateTimeField question={question} value={value} onChange={onChange} readOnly={readOnly} />;
       default:
         return <p className="text-sm text-red-500">Unknown question type: {question.type}</p>;
     }
