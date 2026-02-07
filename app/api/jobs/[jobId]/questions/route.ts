@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createMovewareClient } from '@/lib/clients/moveware';
-import { PerformanceReviewApiResponse, Question } from '@/lib/types/performance';
+import { PerformanceReviewApiResponse, Question, QuestionType } from '@/lib/types/performance';
 
 /**
  * Map Moveware API controlType to our question types
  */
-function mapControlType(controlType: string): string {
-  const typeMap: Record<string, string> = {
+function mapControlType(controlType: string): QuestionType {
+  const typeMap: Record<string, QuestionType> = {
     'Textbox': 'comment',      // Text input → comment field
     'Combo': 'radio',          // Dropdown → radio buttons
     'Checkbox': 'checkbox',    // Checkbox → checkbox (already matches)
@@ -18,7 +18,7 @@ function mapControlType(controlType: string): string {
     'Radio': 'radio',          // Radio → radio field
   };
   
-  return typeMap[controlType] || controlType.toLowerCase();
+  return typeMap[controlType] || 'comment'; // Default to comment for unknown types
 }
 
 /**
