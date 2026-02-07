@@ -13,6 +13,7 @@ function mapControlType(controlType: string): QuestionType {
     'Valuation': 'rating',     // Star rating → rating field
     'Lookup': 'radio',         // Lookup → radio buttons
     'YesNo': 'yesno',          // Yes/No → yesno field
+    'Y': 'yesno',              // Yes/No (short form)
     'Comment': 'comment',      // Comment → comment field
     'Rating': 'rating',        // Rating → rating field
     'Radio': 'radio',          // Radio → radio field
@@ -30,31 +31,41 @@ function mapControlType(controlType: string): QuestionType {
 function transformQuestion(apiQuestion: any): Question {
   const controlType = apiQuestion.controlType || apiQuestion.type || apiQuestion.questionType;
   
-  // Log questions with options to debug
-  if (controlType === 'Combo' || controlType === 'Checkbox' || controlType === 'Lookup') {
-    console.log(`[Transform] ${controlType} question:`, JSON.stringify({
-      id: apiQuestion.id,
-      text: apiQuestion.text,
-      options: apiQuestion.options,
-      choices: apiQuestion.choices,
-      values: apiQuestion.values,
-      items: apiQuestion.items,
-    }, null, 2));
+  // Parse options from 'responses' field (comma-separated string)
+  let options = undefined;
+  if (apiQuestion.responses && typeof apiQuestion.responses === 'string') {
+    const responseArray = apiQuestion.responses
+      .split(',')
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 0);
+    
+    if (responseArray.length > 0) {
+      options = responseArray.map((value: string) => ({
+        id: value.toLowerCase().replace(/\s+/g, '-'),
+        label: value,
+        value: value,
+      }));
+    }
   }
   
-  // Try multiple possible field names for options
-  const rawOptions = apiQuestion.options || apiQuestion.choices || apiQuestion.values || apiQuestion.items;
+  // Fallback to checking other field names if responses doesn't exist
+  if (!options) {
+    const rawOptions = apiQuestion.options || apiQuestion.choices || apiQuestion.values || apiQuestion.items;
+    if (rawOptions && Array.isArray(rawOptions)) {
+      options = rawOptions.map((opt: any) => ({
+        id: opt.id || opt.value || opt.key,
+        label: opt.label || opt.text || opt.name || opt.value,
+        value: opt.value || opt.key || opt.id,
+      }));
+    }
+  }
   
   return {
-    id: apiQuestion.id || apiQuestion.questionId,
+    id: String(apiQuestion.id || apiQuestion.questionId),
     type: mapControlType(controlType),
     text: apiQuestion.text || apiQuestion.question,
     required: apiQuestion.required ?? false,
-    options: rawOptions?.map((opt: any) => ({
-      id: opt.id || opt.value || opt.key,
-      label: opt.label || opt.text || opt.name || opt.value,
-      value: opt.value || opt.key || opt.id,
-    })),
+    options,
     maxRating: apiQuestion.maxRating || apiQuestion.scale || 5,
     placeholder: apiQuestion.placeholder || 'Enter your comments...',
   };
@@ -128,9 +139,6 @@ export async function GET(
           { status: 404 }
         );
       }
-
-      // Log raw questions to debug options
-      console.log('[Questions API] Raw questions from Moveware:', JSON.stringify(apiResponse.questions, null, 2));
 
       // Transform questions
       const questions: Question[] = Array.isArray(apiResponse.questions)
