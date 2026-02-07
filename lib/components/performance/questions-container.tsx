@@ -103,6 +103,25 @@ export function QuestionsContainer({ jobId, companyId, initialReadOnly = false }
   }
 
   if (error) {
+    // Check if this is a "review already completed" message
+    const isAlreadyCompleted = error.includes('already been completed');
+    
+    if (isAlreadyCompleted) {
+      return (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">✓</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-green-900 mb-1">Review Already Completed</h3>
+              <p className="text-green-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
         <div className="flex items-start gap-3">

@@ -61,6 +61,25 @@ export async function GET(
     const movewareClient = createMovewareClient(companyId);
 
     try {
+      // First, check if the Survey review has already been completed
+      const reviewsResponse = await movewareClient.get<any>(`/jobs/${jobId}/reviews`);
+      
+      if (reviewsResponse?.reviews) {
+        const surveyReview = reviewsResponse.reviews.find((review: any) => 
+          review.type === 'Survey'
+        );
+        
+        if (surveyReview && surveyReview.status === 'finished') {
+          return NextResponse.json(
+            { 
+              success: false, 
+              error: 'This review has already been completed. Thank you for your feedback!' 
+            },
+            { status: 409 } // 409 Conflict - resource already exists/completed
+          );
+        }
+      }
+
       // Fetch questions from Moveware API
       const apiResponse = await movewareClient.get<any>(`/jobs/${jobId}/questions`);
 
